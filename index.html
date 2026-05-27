@@ -78,6 +78,41 @@
             margin: 0 auto;
         }
 
+        .name-options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .name-option {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #d6dcff;
+            border-radius: 10px;
+            background: #f7f9ff;
+            color: #24304f;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .name-option:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(102, 126, 234, 0.15);
+            background: #edf1ff;
+        }
+
+        .name-option:disabled {
+            cursor: not-allowed;
+            background: #eceff3;
+            color: #8b94a7;
+            border-color: #d9dee7;
+            box-shadow: none;
+            transform: none;
+            opacity: 0.8;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -325,15 +360,14 @@
         <div id="loginSection">
             <div class="login-container">
                 <h1>Capstone 1: Peer Grading</h1>
-                <p class="login-subtitle">Enter your name to begin grading your teammates</p>
+                <p class="login-subtitle">Select your first name to begin grading your teammates</p>
                 
                 <div class="login-form">
                     <div class="form-group">
-                        <label for="nameInput">Your Name:</label>
-                        <input type="text" id="nameInput" placeholder="Select or type your name" list="nameList" autocomplete="off">
-                        <datalist id="nameList"></datalist>
+                        <label>Your Name:</label>
+                        <div id="nameOptions" class="name-options" aria-label="Team member selection"></div>
                     </div>
-                    <button class="login-btn" onclick="handleLogin()">Start Grading</button>
+                    <button class="login-btn" type="button" onclick="handleLogin()">Start Grading</button>
                     <div class="error-message" id="loginError"></div>
                 </div>
             </div>
@@ -385,6 +419,7 @@
 
         let currentUser = null;
         let teamMembers = TEAM_MEMBERS;
+        let submittedMembers = [];
 
         // Initialize
         async function init() {
@@ -396,20 +431,45 @@
                 if (!response.ok) throw new Error(data.error || 'Failed to load');
 
                 teamMembers = data.teamMembers || TEAM_MEMBERS;
-                
-                // Populate datalist
-                const datalist = document.getElementById('nameList');
-                teamMembers.forEach(member => {
-                    const option = document.createElement('option');
-                    option.value = member;
-                    datalist.appendChild(option);
-                });
+                submittedMembers = data.submittedMembers || [];
+
+                renderNameOptions();
 
                 showLogin();
             } catch (error) {
                 console.error('Init error:', error);
+                renderNameOptions();
                 showLogin();
             }
+        }
+
+        function getFirstName(fullName) {
+            const preferredName = fullName.split(',')[1]?.trim() || fullName.trim();
+            return preferredName.split(' ')[0];
+        }
+
+        function renderNameOptions() {
+            const container = document.getElementById('nameOptions');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            teamMembers.forEach(member => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'name-option';
+                button.textContent = getFirstName(member);
+
+                const isFinished = submittedMembers.includes(member);
+                if (isFinished) {
+                    button.disabled = true;
+                    button.textContent += ' - finished';
+                } else {
+                    button.addEventListener('click', () => handleLogin(member));
+                }
+
+                container.appendChild(button);
+            });
         }
 
         function showLogin() {
@@ -417,19 +477,24 @@
             document.getElementById('loginSection').classList.add('show');
         }
 
-        async function handleLogin() {
-            const name = document.getElementById('nameInput').value.trim();
+        async function handleLogin(name) {
             const errorEl = document.getElementById('loginError');
             errorEl.classList.remove('show');
 
             if (!name) {
-                errorEl.textContent = 'Please enter your name';
+                errorEl.textContent = 'Please select your name';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            if (submittedMembers.includes(name)) {
+                errorEl.textContent = 'This nigga has already finished.';
                 errorEl.classList.add('show');
                 return;
             }
 
             if (!teamMembers.includes(name)) {
-                errorEl.textContent = 'Name not found in team list. Please check your spelling.';
+                errorEl.textContent = 'Name not found in team list.';
                 errorEl.classList.add('show');
                 return;
             }
