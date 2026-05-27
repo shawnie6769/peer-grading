@@ -1,0 +1,11 @@
+{
+  "name": "capstone-peer-grading",
+  "version": "1.0.0",
+  "description": "Capstone 1 Peer Grading System",
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "googleapis": "^118.0.0"
+  }
+}
