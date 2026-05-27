@@ -75,8 +75,8 @@ async function updateAverages() {
   const rows = response.data.values || [];
   const memberAverages = {};
 
-  TEAM_MEMBERS.forEach((_, index) => {
-    memberAverages[index] = [];
+  TEAM_MEMBERS.forEach((member) => {
+    memberAverages[member] = [];
   });
 
   rows.forEach(row => {
@@ -84,25 +84,26 @@ async function updateAverages() {
       for (let i = 0; i < TEAM_MEMBERS.length; i++) {
         const score = parseInt(row[2 + i]);
         if (!isNaN(score)) {
-          memberAverages[i].push(score);
+          memberAverages[TEAM_MEMBERS[i]].push(score);
         }
       }
     }
   });
 
-  const averageRow = ['AVERAGES'];
-  TEAM_MEMBERS.forEach((_, index) => {
-    const scores = memberAverages[index];
+  const summaryRows = [['Member Name', 'Average Grade']];
+  
+  TEAM_MEMBERS.forEach((member) => {
+    const scores = memberAverages[member];
     const avg = scores.length > 0
       ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
       : 0;
-    averageRow.push(avg);
+    summaryRows.push([member, avg]);
   });
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
     range: 'Summary!A1',
     valueInputOption: 'USER_ENTERED',
-    resource: { values: [averageRow] },
+    resource: { values: summaryRows },
   });
 }
