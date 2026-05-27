@@ -113,6 +113,37 @@
             opacity: 0.8;
         }
 
+        .name-option.is-finished {
+            cursor: not-allowed;
+            background: #eceff3;
+            color: #8b94a7;
+            border-color: #d9dee7;
+            opacity: 0.8;
+        }
+
+        .login-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 28px;
+            transform: translateX(-50%) translateY(16px);
+            background: rgba(20, 28, 48, 0.96);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 999px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 30;
+        }
+
+        .login-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -367,7 +398,6 @@
                         <label>Your Name:</label>
                         <div id="nameOptions" class="name-options" aria-label="Team member selection"></div>
                     </div>
-                    <button class="login-btn" type="button" onclick="handleLogin()">Start Grading</button>
                     <div class="error-message" id="loginError"></div>
                 </div>
             </div>
@@ -405,6 +435,8 @@
             </div>
         </div>
     </div>
+
+    <div class="login-toast" id="loginToast" role="status" aria-live="polite"></div>
 
     <script>
         const TEAM_MEMBERS = [
@@ -462,14 +494,34 @@
 
                 const isFinished = submittedMembers.includes(member);
                 if (isFinished) {
-                    button.disabled = true;
+                    button.classList.add('is-finished');
                     button.textContent += ' - finished';
+                    button.setAttribute('aria-disabled', 'true');
+                    button.addEventListener('mouseenter', () => showFloatingMessage('This Nigga has already finished.'));
+                    button.addEventListener('focus', () => showFloatingMessage('This Nigga has already finished.'));
+                    button.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        showFloatingMessage('This Nigga has already finished.');
+                    });
                 } else {
                     button.addEventListener('click', () => handleLogin(member));
                 }
 
                 container.appendChild(button);
             });
+        }
+
+        function showFloatingMessage(message) {
+            const toast = document.getElementById('loginToast');
+            if (!toast) return;
+
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            clearTimeout(showFloatingMessage.hideTimer);
+            showFloatingMessage.hideTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 1800);
         }
 
         function showLogin() {
@@ -488,7 +540,7 @@
             }
 
             if (submittedMembers.includes(name)) {
-                errorEl.textContent = 'This nigga has already finished.';
+                errorEl.textContent = 'This Nigga has already finished.';
                 errorEl.classList.add('show');
                 return;
             }
