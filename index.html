@@ -380,8 +380,8 @@
             'DELA CRUZ, KEN DARYLL JIM'
         ];
 
-        // Replace with your Vercel deployment URL
-        const API_URL = 'https://peer-grading-xi.vercel.app/api';
+        // Use same-origin API routes so the frontend and backend stay on one host.
+        const API_URL = '/api';
 
         let currentUser = null;
         let teamMembers = TEAM_MEMBERS;

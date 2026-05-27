@@ -1,4 +1,3 @@
-// api/check-submission.js
 import { google } from 'googleapis';
 
 const auth = new google.auth.GoogleAuth({
@@ -20,7 +19,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Name is required' });
     }
 
-    // Check if already submitted
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SHEET_ID,
       range: 'Submissions!A:A',

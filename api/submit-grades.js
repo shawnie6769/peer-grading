@@ -1,4 +1,3 @@
-// api/submit-grades.js
 import { google } from 'googleapis';
 
 const TEAM_MEMBERS = [
@@ -8,7 +7,6 @@ const TEAM_MEMBERS = [
   'DELA CRUZ, KEN DARYLL JIM'
 ];
 
-// Initialize Google Sheets API
 const auth = new google.auth.GoogleAuth({
   credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -24,7 +22,6 @@ export default async function handler(req, res) {
   try {
     const { evaluator, scores, members } = req.body;
 
-    // Validate input
     if (!evaluator || !scores || !Array.isArray(scores)) {
       return res.status(400).json({ error: 'Invalid request' });
     }
@@ -41,7 +38,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Duplicate scores not allowed' });
     }
 
-    // Check if already submitted
     const checkResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SHEET_ID,
       range: 'Submissions!A:A',
@@ -52,7 +48,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'You have already submitted' });
     }
 
-    // Append submission to sheet
     const values = [[evaluator, new Date().toISOString(), ...scores]];
 
     await sheets.spreadsheets.values.append({
@@ -62,7 +57,6 @@ export default async function handler(req, res) {
       resource: { values },
     });
 
-    // Calculate and update averages
     await updateAverages();
 
     res.status(200).json({ success: true, message: 'Grades submitted successfully' });
@@ -73,7 +67,6 @@ export default async function handler(req, res) {
 }
 
 async function updateAverages() {
-  // Get all submissions
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
     range: 'Submissions!A2:Z100',
@@ -82,12 +75,10 @@ async function updateAverages() {
   const rows = response.data.values || [];
   const memberAverages = {};
 
-  // Initialize
   TEAM_MEMBERS.forEach((_, index) => {
     memberAverages[index] = [];
   });
 
-  // Collect scores
   rows.forEach(row => {
     if (row.length > 2) {
       for (let i = 0; i < TEAM_MEMBERS.length; i++) {
@@ -99,11 +90,10 @@ async function updateAverages() {
     }
   });
 
-  // Calculate and write averages
   const averageRow = ['AVERAGES'];
   TEAM_MEMBERS.forEach((_, index) => {
     const scores = memberAverages[index];
-    const avg = scores.length > 0 
+    const avg = scores.length > 0
       ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
       : 0;
     averageRow.push(avg);

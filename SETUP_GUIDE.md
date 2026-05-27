@@ -147,12 +147,12 @@ In the root folder, create `package.json`:
 2. Copy this URL
 
 ### 4.2 Update index.html
-Open `index.html` and find this line (around line 285):
+Open `index.html` and make sure the API base uses same-origin routes:
 ```javascript
-const API_URL = 'https://your-vercel-url.vercel.app/api';
+const API_URL = '/api';
 ```
 
-Replace `your-vercel-url.vercel.app` with your actual Vercel URL from Step 4.1
+This keeps the frontend and Vercel functions on the same host, which avoids CORS issues.
 
 ### 4.3 Re-deploy
 1. Commit and push your changes to GitHub (if using GitHub), or
